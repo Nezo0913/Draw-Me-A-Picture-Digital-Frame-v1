@@ -1,1 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DrawMe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================= TOKENS ========================= */
+    :root {
+      --bg:        #0e0e10;
+      --surface:   #17171a;
+      --surface2:  #1f1f24;
+      --border:    #2a2a30;
+      --accent:    #e8ff47;
+      --accent2:   #ff6b6b;
+      --accent3:   #6be0ff;
+      --text:      #f0f0f0;
+      --muted:     #666677;
+      --radius:    14px;
+      --radius-lg: 22px;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
 
+    /* ========================= RESET ========================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    /* ========================= SCREENS ========================= */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+      overflow-y: auto;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ========================= NOISE OVERLAY ========================= */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ========================= LOGO ========================= */
+    .logo {
+      font-family: var(--font-head);
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .logo span { color: var(--text); }
+    .tagline {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    /* ========================= CARD ========================= */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .card-wide { max-width: 680px; }
+    .card-full { max-width: 960px; }
+
+    /* ========================= INPUTS ========================= */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    /* ========================= BUTTONS ========================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .04em;
+      cursor: pointer;
+      border: none;
+      transition: transform .15s, opacity .15s, box-shadow .15s;
+      text-transform: uppercase;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: var(--accent);
+      color: #0e0e10;
+      width: 100%;
+    }
+    .btn-primary:hover { box-shadow: 0 0 24px rgba(232,255,71,.35); }
+    .btn-secondary {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      width: 100%;
+    }
+    .btn-secondary:hover { border-color: var(--muted); }
+    .btn-danger {
+      background: rgba(255,107,107,.15);
+      border: 1.5px solid rgba(255,107,107,.4);
+      color: var(--accent2);
+    }
+    .btn-accent3 {
+      background: var(--accent3);
+      color: #0e0e10;
+    }
+    .btn-sm {
+      padding: 9px 16px;
+      font-size: 12px;
+    }
+    .btn:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ========================= DIVIDER ========================= */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ========================= BADGE ========================= */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .badge-accent  { background: rgba(232,255,71,.15); color: var(--accent); border: 1px solid rgba(232,255,71,.3); }
+    .badge-red     { background: rgba(255,107,107,.15); color: var(--accent2); border: 1px solid rgba(255,107,107,.3); }
+    .badge-blue    { background: rgba(107,224,255,.15); color: var(--accent3); border: 1px solid rgba(107,224,255,.3); }
+    .badge-muted   { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ========================= PLAYER PILL ========================= */
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .player-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .player-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      font-family: var(--font-head);
+      flex-shrink: 0;
+    }
+    .player-item.is-leader .player-avatar::after {
+      content: '👑';
+      position: absolute;
+      font-size: 11px;
+      top: -4px; right: -4px;
+    }
+    .player-item.is-leader { border-color: rgba(232,255,71,.4); }
+    .player-item.is-me { border-color: rgba(107,224,255,.4); }
+    .player-name { flex: 1; font-weight: 500; }
+    .player-score {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    /* ========================= TIMER RING ========================= */
+    .timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .timer-ring {
+      position: relative;
+      width: 80px; height: 80px;
+    }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-ring circle {
+      fill: none;
+      stroke-width: 5;
+    }
+    .timer-ring .bg { stroke: var(--surface2); }
+    .timer-ring .fg { stroke: var(--accent); transition: stroke-dashoffset .9s linear, stroke .3s; }
+    .timer-ring .fg.urgent { stroke: var(--accent2); }
+    .timer-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    /* ========================= PHASE HEADER ========================= */
+    .phase-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .phase-title {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -1px;
+      margin: 8px 0 4px;
+    }
+    .phase-sub { color: var(--muted); font-size: 13px; }
+
+    /* ========================= CANVAS SCREEN ========================= */
+    #screen-drawing {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      overflow: hidden;
+    }
+    .drawing-layout {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .canvas-area {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 16px;
+      gap: 12px;
+      overflow: hidden;
+    }
+    .canvas-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .prompt-pill {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      padding: 10px 20px;
+      font-weight: 500;
+      font-size: 14px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .prompt-pill strong {
+      color: var(--accent);
+      font-family: var(--font-head);
+      margin-right: 8px;
+    }
+    #game-canvas {
+      flex: 1;
+      background: white;
+      border-radius: var(--radius-lg);
+      border: none;
+      cursor: crosshair;
+      max-height: calc(100vh - 130px);
+      width: 100%;
+      touch-action: none;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .tool-btn {
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      transition: all .15s;
+    }
+    .tool-btn.active {
+      background: var(--accent);
+      color: #0e0e10;
+      border-color: var(--accent);
+    }
+    .tool-btn:hover:not(.active) { border-color: var(--muted); }
+    .color-swatch {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .color-swatch.active { border-color: var(--accent); transform: scale(1.15); }
+    .brush-size {
+      appearance: none;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      height: 4px;
+      width: 80px;
+      cursor: pointer;
+    }
+    .drawing-sidebar {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .sidebar-section { display: flex; flex-direction: column; gap: 8px; }
+    .sidebar-label {
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ========================= VOTING SCREEN ========================= */
+    .vote-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .vote-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      position: relative;
+    }
+    .vote-card:hover:not(.voted):not(.own) {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(232,255,71,.15);
+    }
+    .vote-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,255,71,.25);
+    }
+    .vote-card.own {
+      border-color: var(--accent3);
+      cursor: not-allowed;
+    }
+    .vote-canvas-wrap {
+      background: white;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+    }
+    .vote-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .vote-footer {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .vote-anon {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .own-label { font-size: 11px; color: var(--accent3); font-weight: 600; letter-spacing: .06em; }
+    .vote-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      display: none;
+    }
+    .vote-card.selected .vote-check { display: flex; }
+
+    /* ========================= REVEAL SCREEN ========================= */
+    .reveal-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+    }
+    .reveal-card.winner {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px rgba(232,255,71,.2);
+    }
+    .reveal-canvas-wrap {
+      background: white;
+      aspect-ratio: 4/3;
+    }
+    .reveal-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .reveal-footer {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .reveal-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; flex: 1; }
+    .vote-count {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--accent);
+    }
+    .winner-crown { font-size: 20px; }
+
+    /* ========================= TIEBREAK ========================= */
+    .tiebreak-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .tiebreak-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .2s;
+    }
+    .tiebreak-card:hover { border-color: var(--accent); transform: scale(1.02); }
+
+    /* ========================= SCOREBOARD ========================= */
+    .scoreboard-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .rank { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--muted); width: 28px; text-align: center; }
+    .rank.gold { color: #ffd700; }
+    .rank.silver { color: #aaa; }
+    .rank.bronze { color: #cd7f32; }
+    .sb-name { flex: 1; font-weight: 500; }
+    .sb-pts { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--accent); }
+    .sb-delta {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .sb-delta.pos { background: rgba(232,255,71,.15); color: var(--accent); }
+    .sb-delta.neg { background: rgba(255,107,107,.15); color: var(--accent2); }
+
+    /* ========================= TOAST ========================= */
+    #toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: toast-in .3s ease, toast-out .3s ease 2.7s forwards;
+    }
+    @keyframes toast-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes toast-out { to { opacity:0; transform:translateY(10px); } }
+
+    /* ========================= MISC UTILITIES ========================= */
+    .flex-col { display: flex; flex-direction: column; gap: 12px; }
+    .flex-row { display: flex; align-items: center; gap: 10px; }
+    .text-center { text-align: center; }
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .mb-8  { margin-bottom: 8px; }
+    .w100  { width: 100%; }
+    .room-code-display {
+      font-family: var(--font-head);
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      color: var(--accent);
+      text-align: center;
+      padding: 16px;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      border: 1.5px dashed var(--border);
+      margin: 12px 0;
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+    .waiting-dots::after {
+      content: '...';
+      animation: dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%,20% { content: ''; }
+      40%     { content: '.'; }
+      60%     { content: '..'; }
+      80%,100%{ content: '...'; }
+    }
+
+    /* LEADER-only screen */
+    .leader-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232,255,71,.1);
+      border: 1px solid rgba(232,255,71,.3);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ========================= RESPONSIVE CANVAS ========================= */
+    @media (max-width: 700px) {
+      .drawing-layout { grid-template-columns: 1fr; }
+      .drawing-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOAST ===== -->
+<div id="toast-wrap"></div>
+
+<!-- ================================================================
+     SCREEN: LOBBY (landing)
+================================================================ -->
+<div id="screen-landing" class="screen active" style="flex-direction:column;">
+  <div class="text-center">
+    <div class="logo">Draw<span>Me</span></div>
+    <div class="tagline">30-second blind drawing game · 4–7 players</div>
+  </div>
+  <div class="card">
+    <div class="field">
+      <label>Your Name</label>
+      <input type="text" id="input-name" placeholder="Pick a name" maxlength="20" />
+    </div>
+    <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
+    <div class="divider">or join existing</div>
+    <div class="field">
+      <label>Room Code</label>
+      <input type="text" id="input-code" placeholder="XXXXXX" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:var(--font-head);font-weight:700;font-size:20px;" />
+    </div>
+    <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: WAITING ROOM
+================================================================ -->
+<div id="screen-lobby" class="screen" style="flex-direction:column;align-items:center;">
+  <div class="card card-wide">
+    <div class="flex-row mb-8" style="justify-content:space-between;">
+      <div>
+        <div class="phase-title" style="font-family:var(--font-head);font-size:22px;">Waiting Room</div>
+        <div class="phase-sub" id="lobby-status">Waiting for players<span class="waiting-dots"></span></div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="leaveRoom()">Leave</button>
+    </div>
+
+    <div class="room-code-display" id="room-code-display">——</div>
+    <div class="text-center" style="font-size:12px;color:var(--muted);margin-bottom:16px;">Share this code with friends</div>
+
+    <div class="info-row">
+      <span>Players</span>
+      <span id="lobby-count">0 / 7</span>
+    </div>
+    <div class="info-row">
+      <span>Minimum to start</span>
+      <span>4 players</span>
+    </div>
+    <div id="lobby-notice" style="font-size:12px;color:var(--accent2);min-height:18px;margin:8px 0;text-align:center;"></div>
+
+    <div id="lobby-player-list" class="player-list"></div>
+
+    <div id="lobby-host-controls" style="display:none;">
+      <button class="btn btn-primary mt-16" id="btn-start" onclick="startGame()" disabled>
+        Start Game (min. 4 players)
+      </button>
+    </div>
+    <div id="lobby-wait-msg" style="display:none;text-align:center;color:var(--muted);font-size:13px;margin-top:16px;">
+      Waiting for host to start the game<span class="waiting-dots"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: PROMPT (leader picks prompt)
+================================================================ -->
+<div id="screen-prompt" class="screen" style="flex-direction:column;align-items:center;">
+  <div class="card card-wide">
+    <div class="phase-header">
+      <div id="prompt-round-badge" class="badge badge-muted">Round 1</div>
+      <div class="phase-title" id="prompt-title">Your turn to lead!</div>
+      <div class="phase-sub" id="prompt-sub">Enter a drawing prompt for everyone</div>
+    </div>
+
+    <div id="prompt-leader-ui" style="display:none;">
+      <div class="leader-badge mb-8">👑 You are the leader</div>
+      <div class="field mt-16">
+        <label>Drawing Prompt</label>
+        <input type="text" id="input-prompt" placeholder="e.g. A cat riding a rollercoaster" maxlength="60" />
+      </div>
+      <button class="btn btn-primary" onclick="submitPrompt()">Set Prompt & Begin Drawing</button>
+    </div>
+
+    <div id="prompt-wait-ui" style="display:none;text-align:center;">
+      <div style="font-size:48px;margin:20px 0;">🎨</div>
+      <div style="color:var(--muted);">The leader is choosing a prompt<span class="waiting-dots"></span></div>
+      <div id="prompt-leader-name" style="margin-top:8px;font-weight:600;font-size:14px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: DRAWING
+================================================================ -->
+<div id="screen-drawing" class="screen">
+  <div class="drawing-layout">
+    <!-- Left: canvas -->
+    <div class="canvas-area">
+      <div class="canvas-topbar">
+        <div class="prompt-pill"><strong>Draw:</strong><span id="draw-prompt-text"></span></div>
+        <div class="timer-wrap" style="margin:0;">
+          <div class="timer-ring" style="width:52px;height:52px;">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="bg" cx="26" cy="26" r="22" />
+              <circle class="fg" id="timer-fg-draw" cx="26" cy="26" r="22"
+                stroke-dasharray="138.2" stroke-dashoffset="0" />
+            </svg>
+            <div class="timer-number" id="timer-draw-num" style="font-size:16px;">30</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leader sees a locked message instead of canvas -->
+      <div id="leader-drawing-msg" style="display:none;flex:1;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);">
+        <div style="font-size:64px;">👑</div>
+        <div style="font-size:18px;font-weight:600;color:var(--text);">You're the leader this round</div>
+        <div style="font-size:14px;">Watch everyone draw — you'll break ties in the vote!</div>
+      </div>
+
+      <canvas id="game-canvas" width="800" height="520"></canvas>
+
+      <div class="toolbar" id="draw-toolbar">
+        <button class="tool-btn active" id="tool-draw" onclick="setTool('draw')">✏️ Draw</button>
+        <button class="tool-btn" id="tool-erase" onclick="setTool('erase')">🧹 Erase</button>
+        <div style="width:1px;height:24px;background:var(--border);"></div>
+        <!-- Colors -->
+        <div id="color-swatches" class="flex-row" style="gap:6px;"></div>
+        <div style="width:1px;height:24px;background:var(--border);"></div>
+        <input type="range" min="1" max="20" value="3" class="brush-size" id="brush-size" title="Brush size" />
+        <button class="tool-btn" onclick="clearMyDrawing()" title="Clear my drawing">🗑️</button>
+      </div>
+    </div>
+
+    <!-- Right: sidebar -->
+    <div class="drawing-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Round</div>
+        <div id="draw-round-label" style="font-family:var(--font-head);font-weight:800;font-size:22px;"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Players</div>
+        <div id="draw-player-list" class="player-list"></div>
+      </div>
+      <div class="sidebar-section" style="margin-top:auto;">
+        <div class="sidebar-label">Scoreboard</div>
+        <div id="draw-scoreboard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: BLIND VOTING
+================================================================ -->
+<div id="screen-voting" class="screen" style="flex-direction:column;align-items:center;">
+  <div style="width:100%;max-width:960px;">
+    <div class="phase-header">
+      <div class="badge badge-accent">🗳️ Blind Vote</div>
+      <div class="phase-title">Vote for the best drawing</div>
+      <div class="phase-sub">Artist names hidden — vote honestly! You cannot vote for your own.</div>
+    </div>
+
+    <div class="flex-row" style="justify-content:center;margin-bottom:16px;">
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="bg" cx="40" cy="40" r="34" />
+            <circle class="fg" id="timer-fg-vote" cx="40" cy="40" r="34"
+              stroke-dasharray="213.6" stroke-dashoffset="0" />
+          </svg>
+          <div class="timer-number" id="timer-vote-num">20</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Seconds to vote</div>
+      </div>
+    </div>
+
+    <div id="vote-prompt-label" style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
+
+    <div id="vote-grid" class="vote-grid"></div>
+
+    <div style="text-align:center;margin-top:20px;">
+      <button class="btn btn-primary" id="btn-lock-vote" onclick="lockVote()" style="max-width:240px;" disabled>
+        Lock in Vote
+      </button>
+      <div id="vote-status-msg" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: TIEBREAK (leader only decision)
+================================================================ -->
+<div id="screen-tiebreak" class="screen" style="flex-direction:column;align-items:center;">
+  <div style="width:100%;max-width:700px;">
+    <div class="phase-header">
+      <div class="badge badge-red">⚖️ Tiebreak</div>
+      <div class="phase-title" id="tiebreak-title">Leader breaks the tie!</div>
+      <div class="phase-sub" id="tiebreak-sub">Choose the winner between the tied drawings.</div>
+    </div>
+    <div id="tiebreak-grid" class="tiebreak-grid" style="margin:0 auto;"></div>
+    <div id="tiebreak-wait" style="display:none;text-align:center;margin-top:32px;color:var(--muted);">
+      The leader is picking the winner<span class="waiting-dots"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: REVEAL
+================================================================ -->
+<div id="screen-reveal" class="screen" style="flex-direction:column;align-items:center;">
+  <div style="width:100%;max-width:960px;">
+    <div class="phase-header">
+      <div class="badge badge-accent">🎭 Reveal</div>
+      <div class="phase-title" id="reveal-title">The results are in!</div>
+      <div class="phase-sub" id="reveal-prompt-label"></div>
+    </div>
+
+    <div id="reveal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;width:100%;margin-bottom:24px;"></div>
+
+    <div id="round-score-changes" style="margin-bottom:20px;"></div>
+
+    <div style="text-align:center;">
+      <div id="reveal-next-info" style="font-size:13px;color:var(--muted);margin-bottom:12px;"></div>
+      <button class="btn btn-primary" id="btn-next-round" onclick="advanceNextRound()" style="max-width:240px;display:none;">
+        Next Round →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN: FINAL SCOREBOARD
+================================================================ -->
+<div id="screen-final" class="screen" style="flex-direction:column;align-items:center;">
+  <div class="card card-wide">
+    <div class="phase-header">
+      <div class="badge badge-accent">🏆 Game Over</div>
+      <div class="phase-title">Final Standings</div>
+    </div>
+    <div id="final-scoreboard"></div>
+    <button class="btn btn-primary mt-24" onclick="returnToLobby()">Play Again</button>
+  </div>
+</div>
+</script>
+</body>
+</html>  
