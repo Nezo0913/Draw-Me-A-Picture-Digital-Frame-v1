@@ -1,8 +1,20 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+// ================= FIREBASE CDN IMPORTS =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  update,
+  onValue,
+  push,
+  remove,
+  onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// ================= CONFIG =================
 const firebaseConfig = {
-  apiKey: "AIzaSyDdfVC4M-1MXilG4BQZFUlEEPYZFxXeJgU",
+  apiKey: "AIzaSyDdfVC4M-1MXilGQBZFUlEEPYZFxXeJgU",
   authDomain: "drawme-v2.firebaseapp.com",
   databaseURL: "https://drawme-v2-default-rtdb.firebaseio.com",
   projectId: "drawme-v2",
@@ -12,5 +24,19 @@ const firebaseConfig = {
   measurementId: "G-M6QVYEQNKH"
 };
 
+// ================= INIT =================
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// ================= EXPORTS =================
+export {
+  db,
+  ref,
+  set,
+  get,
+  update,
+  onValue,
+  push,
+  remove,
+  onDisconnect
+};
