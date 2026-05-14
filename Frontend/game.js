@@ -1,5 +1,5 @@
 import { db, ref, set, get, update, onValue, push, remove, onDisconnect }
-from "../backend/firebase.js";
+from "../Backend/firebase.js";
 
 // ========================= CLIENT IDENTITY =========================
 let clientId = sessionStorage.getItem('dmClientId');
